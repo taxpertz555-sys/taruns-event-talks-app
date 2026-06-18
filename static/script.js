@@ -4,6 +4,7 @@ let filteredReleases = [];
 let selectedRelease = null;
 let currentFilter = 'all';
 let searchQuery = '';
+let readReleases = new Set(JSON.parse(localStorage.getItem('read_releases') || '[]'));
 
 // DOM Elements
 const refreshBtn = document.getElementById('refresh-btn');
@@ -30,6 +31,8 @@ const tweetBtn = document.getElementById('tweet-btn');
 
 const themeToggleBtn = document.getElementById('theme-toggle');
 const exportCsvBtn = document.getElementById('export-csv-btn');
+const copyTweetBtn = document.getElementById('copy-tweet-btn');
+const resetFiltersBtn = document.getElementById('reset-filters-btn');
 
 // Page Load Setup
 document.addEventListener('DOMContentLoaded', () => {
@@ -83,6 +86,27 @@ function setupEventListeners() {
 
     // Theme Toggle action
     themeToggleBtn.addEventListener('click', toggleTheme);
+
+    // Copy Tweet action
+    copyTweetBtn.addEventListener('click', () => {
+        if (tweetTextarea.value) {
+            navigator.clipboard.writeText(tweetTextarea.value).then(() => {
+                showToast("Draft tweet copied to clipboard!");
+            });
+        }
+    });
+
+    // Reset Filters action
+    resetFiltersBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchQuery = '';
+        currentFilter = 'all';
+        document.querySelectorAll('.tab').forEach(tab => {
+            if (tab.dataset.type === 'all') tab.classList.add('active');
+            else tab.classList.remove('active');
+        });
+        applyFilters();
+    });
 }
 
 // Fetch Release Notes from Backend
@@ -206,9 +230,13 @@ function renderList() {
         const catLabel = release.category === 'feature' ? 'Feature' : 
                           release.category === 'deprecation' ? 'Deprecation' : 'Change/Fix';
         
+        const isUnread = !readReleases.has(release.id);
+        const unreadDot = isUnread ? `<span class="unread-dot" title="Unread Update"></span>` : '';
+
         card.innerHTML = `
             <div class="card-header">
                 <div class="card-meta">
+                    ${unreadDot}
                     <span class="date-badge">${formatDate(release.published)}</span>
                     <span class="cat-badge ${release.category}">${catLabel}</span>
                 </div>
@@ -238,6 +266,7 @@ function renderList() {
                     </svg>
                 `;
                 copyBtn.classList.add('copied');
+                showToast("Copied release details to clipboard!");
                 
                 setTimeout(() => {
                     copyBtn.innerHTML = originalSvg;
@@ -255,6 +284,14 @@ function renderList() {
 function selectRelease(release, cardElement) {
     selectedRelease = release;
     
+    // Mark as read
+    if (!readReleases.has(release.id)) {
+        readReleases.add(release.id);
+        localStorage.setItem('read_releases', JSON.stringify(Array.from(readReleases)));
+        const dot = cardElement.querySelector('.unread-dot');
+        if (dot) dot.remove();
+    }
+
     // Highlight active card
     document.querySelectorAll('.release-card').forEach(c => c.classList.remove('active'));
     cardElement.classList.add('active');
@@ -277,6 +314,18 @@ function selectRelease(release, cardElement) {
     
     // Setup composer default tweet text
     draftTweet(release, false);
+    
+    // Smooth scroll on mobile screens
+    if (window.innerWidth <= 992) {
+        detailView.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+// Calculate tweet length considering Twitter's 23-character t.co URL shortening
+function getTweetLength(text) {
+    const urlRegex = /https?:\/\/[^\s]+/g;
+    const textWithFixedUrls = text.replace(urlRegex, "x".repeat(23));
+    return textWithFixedUrls.length;
 }
 
 // Draft/compose Tweet text
@@ -297,10 +346,10 @@ function draftTweet(release, isRewrite) {
         text = `📢 BigQuery Update: ${cleanTitle}\n\nRead more details here: ${release.link} #BigQuery #GoogleCloud`;
     }
     
-    // Check constraint size limit
-    if (text.length > 280) {
+    // Check constraint size limit using the t.co rules
+    if (getTweetLength(text) > 280) {
         // Try truncating title
-        const remainingSpace = 280 - (text.length - cleanTitle.length) - 3;
+        const remainingSpace = 280 - (getTweetLength(text) - cleanTitle.length) - 3;
         if (remainingSpace > 30) {
             cleanTitle = cleanTitle.substring(0, remainingSpace) + '...';
             text = isRewrite ? 
@@ -315,7 +364,7 @@ function draftTweet(release, isRewrite) {
 
 // Update char counter status
 function updateCharCount() {
-    const len = tweetTextarea.value.length;
+    const len = getTweetLength(tweetTextarea.value);
     charCounter.textContent = `${len} / 280`;
     
     if (len > 280) {
@@ -425,4 +474,23 @@ function exportToCSV() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+}
+
+// Display visual toast notification helper
+function showToast(message) {
+    const existing = document.querySelector('.toast-notification');
+    if (existing) existing.remove();
+    
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => toast.classList.add('visible'), 10);
+    
+    setTimeout(() => {
+        toast.classList.remove('visible');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }

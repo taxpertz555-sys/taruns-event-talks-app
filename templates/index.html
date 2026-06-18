@@ -91,6 +91,7 @@
                     </svg>
                     <h3>No releases found</h3>
                     <p>Try resetting filters or changing your search query.</p>
+                    <button id="reset-filters-btn" class="btn btn-secondary btn-sm" style="margin-top: 0.5rem;">Reset Filters</button>
                 </div>
 
                 <div id="releases-list" class="releases-list"></div>
@@ -146,17 +147,25 @@
                         </div>
                         
                         <div class="composer-footer">
-                            <button id="suggest-tweet-btn" class="btn btn-secondary" title="Auto-summarize update for Tweet">
-                                <svg viewBox="0 0 24 24" width="16" height="16">
-                                    <path fill="currentColor" d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 0 1 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.09-2.15 4.1z"/>
-                                </svg>
-                                Auto-Draft
-                            </button>
+                            <div class="composer-actions-left" style="display: flex; gap: 0.5rem;">
+                                <button id="suggest-tweet-btn" class="btn btn-secondary" title="Auto-summarize update for Tweet">
+                                    <svg viewBox="0 0 24 24" width="16" height="16">
+                                        <path fill="currentColor" d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 0 1 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.09-2.15 4.1z"/>
+                                    </svg>
+                                    <span>Auto-Draft</span>
+                                </button>
+                                <button id="copy-tweet-btn" class="btn btn-secondary" title="Copy tweet text to clipboard">
+                                    <svg viewBox="0 0 24 24" width="16" height="16">
+                                        <path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                    </svg>
+                                    <span>Copy Text</span>
+                                </button>
+                            </div>
                             <button id="tweet-btn" class="btn btn-tweet">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                                 </svg>
-                                Post Tweet
+                                <span>Post Tweet</span>
                             </button>
                         </div>
                     </div>
