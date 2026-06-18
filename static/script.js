@@ -28,8 +28,12 @@ const charCounter = document.getElementById('char-counter');
 const suggestTweetBtn = document.getElementById('suggest-tweet-btn');
 const tweetBtn = document.getElementById('tweet-btn');
 
+const themeToggleBtn = document.getElementById('theme-toggle');
+const exportCsvBtn = document.getElementById('export-csv-btn');
+
 // Page Load Setup
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     setupEventListeners();
     fetchReleases();
 });
@@ -73,6 +77,12 @@ function setupEventListeners() {
     
     // Post tweet action
     tweetBtn.addEventListener('click', postTweet);
+
+    // Export CSV action
+    exportCsvBtn.addEventListener('click', exportToCSV);
+
+    // Theme Toggle action
+    themeToggleBtn.addEventListener('click', toggleTheme);
 }
 
 // Fetch Release Notes from Backend
@@ -202,11 +212,40 @@ function renderList() {
                     <span class="date-badge">${formatDate(release.published)}</span>
                     <span class="cat-badge ${release.category}">${catLabel}</span>
                 </div>
+                <button class="btn-copy-card" title="Copy clean text to clipboard">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                        <path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                    </svg>
+                </button>
             </div>
             <h3>${release.title}</h3>
             <div class="card-excerpt">${plainText}</div>
         `;
         
+        // Setup copy button interaction
+        const copyBtn = card.querySelector('.btn-copy-card');
+        copyBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Stop card click handler
+            
+            const titleText = release.title;
+            const fullText = `${titleText}\n\nDate: ${formatDate(release.published)}\nLink: ${release.link}\n\n${plainText}`;
+            
+            navigator.clipboard.writeText(fullText).then(() => {
+                const originalSvg = copyBtn.innerHTML;
+                copyBtn.innerHTML = `
+                    <svg viewBox="0 0 24 24" width="16" height="16" style="color: var(--badge-feature-text)">
+                        <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                `;
+                copyBtn.classList.add('copied');
+                
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalSvg;
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            });
+        });
+
         card.addEventListener('click', () => selectRelease(release, card));
         releasesList.appendChild(card);
     });
@@ -317,4 +356,73 @@ function showErrorState() {
             <p>We couldn't connect to the Google Cloud Release notes feed. Check your connection and try again.</p>
         </div>
     `;
+}
+
+// Initialize theme state
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const systemPrefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    
+    if (savedTheme === 'light' || (!savedTheme && systemPrefersLight)) {
+        document.body.classList.add('light-theme');
+        const darkIcon = document.querySelector('.theme-icon-dark');
+        const lightIcon = document.querySelector('.theme-icon-light');
+        if (darkIcon && lightIcon) {
+            darkIcon.classList.add('hidden');
+            lightIcon.classList.remove('hidden');
+        }
+    }
+}
+
+// Toggle light/dark theme variables
+function toggleTheme() {
+    const isLightTheme = document.body.classList.toggle('light-theme');
+    const darkIcon = document.querySelector('.theme-icon-dark');
+    const lightIcon = document.querySelector('.theme-icon-light');
+    
+    if (isLightTheme) {
+        if (darkIcon) darkIcon.classList.add('hidden');
+        if (lightIcon) lightIcon.classList.remove('hidden');
+        localStorage.setItem('theme', 'light');
+    } else {
+        if (darkIcon) darkIcon.classList.remove('hidden');
+        if (lightIcon) lightIcon.classList.add('hidden');
+        localStorage.setItem('theme', 'dark');
+    }
+}
+
+// Export filtered releases data to CSV format
+function exportToCSV() {
+    if (filteredReleases.length === 0) {
+        alert("No releases to export.");
+        return;
+    }
+    
+    const headers = ["Date", "Category", "Title", "Link", "Content"];
+    
+    const escapeCSV = (text) => {
+        if (!text) return "";
+        const cleanText = text.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+        return `"${cleanText.replace(/"/g, '""')}"`;
+    };
+    
+    const rows = filteredReleases.map(release => {
+        const date = formatDate(release.published);
+        const cat = release.category;
+        const title = escapeCSV(release.title);
+        const link = escapeCSV(release.link);
+        const content = escapeCSV(release.content);
+        return [date, cat, title, link, content].join(",");
+    });
+    
+    const csvContent = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `bigquery_releases_export_${new Date().toISOString().slice(0,10)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }

@@ -683,3 +683,94 @@ body {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
 }
+
+/* Light Theme Variables Override */
+body.light-theme {
+    --bg-primary: #F1F5F9;
+    --bg-secondary: rgba(255, 255, 255, 0.7);
+    --bg-card: rgba(255, 255, 255, 0.85);
+    --border-color: rgba(0, 0, 0, 0.08);
+    --border-hover: rgba(66, 133, 244, 0.6);
+    
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --text-muted: #64748B;
+    
+    --accent-glow: rgba(66, 133, 244, 0.08);
+    
+    --badge-feature-bg: rgba(16, 185, 129, 0.1);
+    --badge-feature-text: #059669;
+    --badge-change-bg: rgba(59, 130, 246, 0.1);
+    --badge-change-text: #2563EB;
+    --badge-deprecate-bg: rgba(239, 68, 68, 0.1);
+    --badge-deprecate-text: #DC2626;
+}
+
+body.light-theme .glow-bg {
+    background: 
+        radial-gradient(circle at 10% 20%, rgba(66, 133, 244, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 40%),
+        #F1F5F9;
+}
+
+body.light-theme .title-group h1 {
+    background: linear-gradient(135deg, #0F172A 0%, #475569 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+body.light-theme .composer-body textarea {
+    background: rgba(255, 255, 255, 0.6);
+    color: var(--text-primary);
+}
+
+body.light-theme .composer-body textarea:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 10px rgba(66, 133, 244, 0.1);
+}
+
+body.light-theme .btn-tweet {
+    background: #0F172A;
+    color: #FFFFFF;
+}
+
+body.light-theme .btn-tweet:hover {
+    background: #1E293B;
+}
+
+/* Card Copy Button Styling */
+.btn-copy-card {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    transition: var(--transition-smooth);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-copy-card:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+body.light-theme .btn-copy-card:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.btn-copy-card.copied {
+    transform: scale(1.1);
+}
+
+/* Utilities */
+.btn-icon-only {
+    padding: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+}
+
